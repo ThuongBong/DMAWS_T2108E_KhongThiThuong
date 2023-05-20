@@ -1,7 +1,12 @@
-﻿using DMAWS_T2108E_KhongThiThuong.DbContextConnection;
-using DMAWS_T2108E_KhongThiThuong.Model;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using DMAWS_T2108E_KhongThiThuong.DbContextConnection;
+using DMAWS_T2108E_KhongThiThuong.Model;
 
 namespace DMAWS_T2108E_KhongThiThuong.Controllers
 {
@@ -20,6 +25,10 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
         {
+          if (_context.Projects == null)
+          {
+              return NotFound();
+          }
             return await _context.Projects.ToListAsync();
         }
 
@@ -27,6 +36,10 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Project>> GetProject(int id)
         {
+          if (_context.Projects == null)
+          {
+              return NotFound();
+          }
             var project = await _context.Projects.FindAsync(id);
 
             if (project == null)
@@ -37,7 +50,9 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
             return project;
         }
 
+
         // PUT: api/Projects/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProject(int id, Project project)
         {
@@ -68,9 +83,14 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
         }
 
         // POST: api/Projects
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Project>> PostProject(Project project)
         {
+          if (_context.Projects == null)
+          {
+              return Problem("Entity set 'ApplicationDbContext.Projects'  is null.");
+          }
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
 
@@ -81,6 +101,10 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProject(int id)
         {
+            if (_context.Projects == null)
+            {
+                return NotFound();
+            }
             var project = await _context.Projects.FindAsync(id);
             if (project == null)
             {
@@ -93,72 +117,23 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
             return NoContent();
         }
 
+        //search
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Project>>> SearchProjects(string projectName)
+        {
+            var currentDateTime = DateTime.UtcNow;
+            var projects = await _context.Projects
+                .Where(p => p.ProjectName.Contains(projectName) &&
+                            ((p.ProjectEndDate == null && p.ProjectStartDate <= currentDateTime) ||
+                             (p.ProjectEndDate != null && p.ProjectEndDate <= currentDateTime)))
+                .ToListAsync();
+
+            return projects;
+        }
+
         private bool ProjectExists(int id)
         {
-            return _context.Projects.Any(e => e.ProjectId == id);
+            return (_context.Projects?.Any(e => e.ProjectId == id)).GetValueOrDefault();
         }
-
-        //Search
-
-        [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<Project>>> SearchProjects(string projectName = null, bool? inProgress = null, bool? finished = null)
-        {
-            var query = _context.Projects.AsQueryable();
-
-            if (!string.IsNullOrEmpty(projectName))
-            {
-                query = query.Where(p => p.ProjectName.Contains(projectName));
-            }
-
-            if (inProgress.HasValue && inProgress.Value)
-            {
-                query = query.Where(p => p.ProjectEndDate == null || p.ProjectEndDate > DateTime.Now);
-            }
-
-            if (finished.HasValue && finished.Value)
-            {
-                query = query.Where(p => p.ProjectEndDate != null && p.ProjectEndDate < DateTime.Now);
-            }
-
-            return await query.ToListAsyncH);
-        }
-
-        [HttpGet("{id}/details")]
-        public async Task<ActionResult<Project>> GetProjectDetails(int id)
-        {
-            var project = await _context.Projects.Include(p => p.ProjectEmployees).ThenInclude(pe => pe.Employees).FirstOrDefaultAsync(p => p.ProjectId == id);
-
-            if (project == null)
-            {
-                return NotFound();
-            }
-
-            return project;
-        }
-
-        [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<Employee>>> SearchEmployees(string employeeName = null, DateTime? dobFrom = null, DateTime? dobTo = null)
-        {
-            var query = _context.Employees.AsQueryable();
-
-            if (!string.IsNullOrEmpty(employeeName))
-            {
-                query = query.Where(e => e.EmployeeName.Contains(employeeName));
-            }
-
-            if (dobFrom.HasValue)
-            {
-                query = query.Where(e => e.EmployeeDOB >= dobFrom.Value);
-            }
-
-            if (dobTo.HasValue)
-            {
-                query = query.Where(e => e.EmployeeDOB <= dobTo.Value);
-            }
-
-            return await query.ToListAsync();
-        }
-
-
     }
 }
