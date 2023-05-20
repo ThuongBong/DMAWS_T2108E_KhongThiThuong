@@ -97,5 +97,68 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
         {
             return _context.Projects.Any(e => e.ProjectId == id);
         }
+
+        //Search
+
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Project>>> SearchProjects(string projectName = null, bool? inProgress = null, bool? finished = null)
+        {
+            var query = _context.Projects.AsQueryable();
+
+            if (!string.IsNullOrEmpty(projectName))
+            {
+                query = query.Where(p => p.ProjectName.Contains(projectName));
+            }
+
+            if (inProgress.HasValue && inProgress.Value)
+            {
+                query = query.Where(p => p.ProjectEndDate == null || p.ProjectEndDate > DateTime.Now);
+            }
+
+            if (finished.HasValue && finished.Value)
+            {
+                query = query.Where(p => p.ProjectEndDate != null && p.ProjectEndDate < DateTime.Now);
+            }
+
+            return await query.ToListAsyncHere);
+        }
+
+        [HttpGet("{id}/details")]
+        public async Task<ActionResult<Project>> GetProjectDetails(int id)
+        {
+            var project = await _context.Projects.Include(p => p.ProjectEmployees).ThenInclude(pe => pe.Employees).FirstOrDefaultAsync(p => p.ProjectId == id);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            return project;
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<Employee>>> SearchEmployees(string employeeName = null, DateTime? dobFrom = null, DateTime? dobTo = null)
+        {
+            var query = _context.Employees.AsQueryable();
+
+            if (!string.IsNullOrEmpty(employeeName))
+            {
+                query = query.Where(e => e.EmployeeName.Contains(employeeName));
+            }
+
+            if (dobFrom.HasValue)
+            {
+                query = query.Where(e => e.EmployeeDOB >= dobFrom.Value);
+            }
+
+            if (dobTo.HasValue)
+            {
+                query = query.Where(e => e.EmployeeDOB <= dobTo.Value);
+            }
+
+            return await query.ToListAsync();
+        }
+
+
     }
 }
