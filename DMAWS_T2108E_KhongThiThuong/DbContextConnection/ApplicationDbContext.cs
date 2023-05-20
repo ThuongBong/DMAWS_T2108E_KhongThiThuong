@@ -6,20 +6,8 @@ namespace DMAWS_T2108E_KhongThiThuong.DbContextConnection
 {
     public class ApplicationDbContext : DbContext
     {
-        protected readonly IConfiguration Configuration;
-
-        public ApplicationDbContext(IConfiguration configuration)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-            Configuration = configuration;
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                var connectionString = Configuration.GetConnectionString("EmployeesContext");
-                optionsBuilder.UseSqlServer(connectionString);
-            }
         }
 
         public DbSet<Project> Projects { get; set; }
