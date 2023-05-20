@@ -25,7 +25,7 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
 
         // GET: api/Projects/5
         [HttpGet("{id}")]
-        public async Task<ActionResultHere <Project>> GetProject(int id)
+        public async Task<ActionResult<Project>> GetProject(int id)
         {
             var project = await _context.Projects.FindAsync(id);
 
@@ -87,7 +87,7 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
                 return NotFound();
             }
 
-            _context.Projects.Remove(projectHere);
+            _context.Projects.Remove(project);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -120,7 +120,7 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
                 query = query.Where(p => p.ProjectEndDate != null && p.ProjectEndDate < DateTime.Now);
             }
 
-            return await query.ToListAsyncHere);
+            return await query.ToListAsyncH);
         }
 
         [HttpGet("{id}/details")]
