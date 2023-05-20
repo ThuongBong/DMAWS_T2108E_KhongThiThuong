@@ -1,0 +1,25 @@
+﻿@model List<Project>
+
+<h1>Search Results</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Project Id</th>
+            <th>Project Name</th>
+            <th>Project Start Date</th>
+            <th>Project End Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (varproject in Model)
+        {
+            <tr>
+                <td>@project.ProjectId</td>
+                <td>@project.ProjectName</td>
+                <td>@project.ProjectStartDate</td>
+                <td>@(project.ProjectEndDate.HasValue ? project.ProjectEndDate.Value.ToShortDateString() : "-")</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DMAWS_T2108E_KhongThiThuong.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
+    [DbContext(typeof(DbContextConnection.ApplicationDbContext))]
     [Migration("20230520050243_PracticeDb")]
     partial class PracticeDb
     {

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DMAWS_T2108E_KhongThiThuong.DbContextConnection;
 using DMAWS_T2108E_KhongThiThuong.Model;
+using DMAWS_T2108E_KhongThiThuong.Model.Repository;
 
 namespace DMAWS_T2108E_KhongThiThuong.Controllers
 {
@@ -15,10 +16,13 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
     public class ProjectsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private ProjectRepository _projectRepository;
 
         public ProjectsController(ApplicationDbContext context)
         {
             _context = context;
+            _projectRepository = new ProjectRepository(context);
+
         }
 
         // GET: api/Projects
@@ -118,17 +122,12 @@ namespace DMAWS_T2108E_KhongThiThuong.Controllers
         }
 
         //search
-        [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<Project>>> SearchProjects(string projectName)
-        {
-            var currentDateTime = DateTime.UtcNow;
-            var projects = await _context.Projects
-                .Where(p => p.ProjectName.Contains(projectName) &&
-                            ((p.ProjectEndDate == null && p.ProjectStartDate <= currentDateTime) ||
-                             (p.ProjectEndDate != null && p.ProjectEndDate <= currentDateTime)))
-                .ToListAsync();
 
-            return projects;
+        [HttpGet]
+        public IActionResult SearchProject(string projectName, bool inProgress)
+        {
+            var projects = _projectRepository.SearchProjects(projectName, inProgress);
+            return View(projects);
         }
 
         private bool ProjectExists(int id)
